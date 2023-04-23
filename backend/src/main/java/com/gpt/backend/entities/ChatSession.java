@@ -13,10 +13,12 @@ public class ChatSession {
     @Id
     private String sessionId;
 
+    private String subject;
     private List<QuestionAnswerPair> questionAnswerPairs;
 
     public ChatSession(String sessionId) {
         this.sessionId = sessionId;
+        this.subject = "";
         this.questionAnswerPairs = new ArrayList<>();
     }
 

@@ -38,13 +38,26 @@ public class ChatController {
     @Autowired
     ChatSessionRepository chatSessionRepository;
 
-    @GetMapping("/sessions")
-    public ResponseEntity<String> createSession() {
-        ChatSession session = new ChatSession("000002");
-        chatSessionRepository.save(session);
-        this.sessions.put("1234", session);
-        System.out.println(session);
-        return new ResponseEntity<>("1234", HttpStatus.CREATED);
+    @GetMapping("/sessions/{sessionId}")
+    @CrossOrigin(origins = "http://localhost:3000")
+    public String createSession(@PathVariable String sessionId) {
+        if (sessionId.equalsIgnoreCase("newsession")){
+        sessionId = UUID.randomUUID().toString();
+            ChatSession session = new ChatSession(sessionId);
+            chatSessionRepository.save(session);
+            this.sessions.put(sessionId, session);
+            System.out.println(sessionId +"newly created");
+            return sessionId;
+        }
+        else {
+            System.out.println(sessionId +"old one ");
+        return sessionId; }
+    }
+
+    @GetMapping(path="/sessions/getsessions")
+    @CrossOrigin(origins = "http://localhost:3000")
+    public List<ChatSession> chatSessions() {
+        return chatSessionRepository.findAll();
     }
 
     @PostMapping(path = "/sessions/{sessionId}/qa")
@@ -59,24 +72,24 @@ public class ChatController {
         GPTResponse GPTResponse = chatWithGpt(promptBuilder(session,question));
         System.out.println(promptBuilder(session,question));
         System.out.println("--------------------------------------------");
-        responseRepository.save(GPTResponse);
-        requestRepository.save(new GPTRequest(question));
         System.out.println(GPTResponse.Answer());
         System.out.println("---------------------------------------------");
         session.addQuestionAnswerPair(question,GPTResponse.Answer().trim());
         chatSessionRepository.save(session);
+        updateSessionSubject(session);
+        chatSessionRepository.save(session);
         System.out.println(session.getQuestionAnswerPairs());
         System.out.println("********************************************");
+        System.out.println(session.getSubject());
+        System.out.println("********************************************");
+
+
         return session.getQuestionAnswerPairs();
     }
 
 
 
     // Instantiating the objects
-    @Autowired
-    private RequestRepository requestRepository;
-    @Autowired
-    private ResponseRepository responseRepository;
     @Autowired
     private ObjectMapper jsonMapper;
 
@@ -117,41 +130,43 @@ public class ChatController {
     private abstract class ObjectListMixIn<T> {
         ObjectListMixIn(@JsonProperty("choices") List<T> choices) {}
     }
-
-
-    // method to generate a unique session ID
-    private String generateSessionId() {
-        return UUID.randomUUID().toString();
-    }
-
+    //Building prompt based on the context
     private String promptBuilder(ChatSession session, String question){
         StringBuilder builder = new StringBuilder();
     if (session.getQuestionAnswerPairs().size()!=0){
             if (session.getQuestionAnswerPairs().size()<20) {
                 for (int i = 0; i < session.getQuestionAnswerPairs().size(); i++) {
-                    builder.append("Q : ");
+                    builder.append("\n ");
                     builder.append(session.getQuestionAnswerPairs().get(i).getQuestion() + ", ");
-                    builder.append("A : ");
-                    builder.append(session.getQuestionAnswerPairs().get(i).getAnswer() + ", ");
-                    builder.append("Q : ");
+                    builder.append("\n ");
+                    builder.append(session.getQuestionAnswerPairs().get(i).getAnswer() + ", \n");
+                    //builder.append("Q : ");
                     builder.append(question);
-                    builder.append("  give the answer directly, without taking the Q: A: format in consideration");
+                    builder.append("  \n ,while answering, give the answer directly");
                 }
             } else {
                 for (int i = session.getQuestionAnswerPairs().size()-20; i < session.getQuestionAnswerPairs().size(); i++) {
-                    builder.append("Q : ");
+                    builder.append("\n ");
                     builder.append(session.getQuestionAnswerPairs().get(i).getQuestion() + ", ");
-                    builder.append("A : ");
-                    builder.append(session.getQuestionAnswerPairs().get(i).getAnswer() + ", ");
-                    builder.append("Q : ");
+                    builder.append("\n ");
+                    builder.append(session.getQuestionAnswerPairs().get(i).getAnswer() + ",\n ");
+                    // builder.append("Q : ");
                     builder.append(question);
-                    builder.append("  give the answer directly, without taking the Q: A: format in consideration");
+                    builder.append("  \n ,while answering, give the answer directly");
                 }
             }
     }
     else { builder.append(question);
     }
         return builder.toString();
+    }
+
+    // update the subject to chat Sessionand where
+    private void updateSessionSubject(ChatSession session) throws Exception {
+       String generateSubject = "this is not a question, from all I said, generate a common subject , in not more than ten words";
+       String prompt = promptBuilder(session, generateSubject);
+        GPTResponse GPTResponseSubject = chatWithGpt(prompt);
+        session.setSubject(GPTResponseSubject.Answer().trim());
     }
 
 }
