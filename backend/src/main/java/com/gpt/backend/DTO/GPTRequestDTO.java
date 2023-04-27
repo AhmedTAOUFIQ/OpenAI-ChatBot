@@ -1,4 +1,4 @@
-package com.gpt.backend.entities;
+package com.gpt.backend.DTO;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -7,13 +7,10 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 @Data  @AllArgsConstructor
 @NoArgsConstructor
-@Document
-public class GPTRequest {
-    //@Id
-    //String Id;
+public class GPTRequestDTO {
     String model; String prompt; double temperature; int max_tokens;
 
-    public GPTRequest(String prompt){
+    public GPTRequestDTO(String prompt){
         this.prompt = prompt;
         this.model="text-davinci-003";
         this.temperature=0.8;

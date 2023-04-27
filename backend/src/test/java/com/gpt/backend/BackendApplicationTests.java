@@ -1,5 +1,6 @@
 package com.gpt.backend;
 
+import com.gpt.backend.services.RequestBuildingServiceTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
@@ -9,5 +10,4 @@ class BackendApplicationTests {
 	@Test
 	void contextLoads() {
 	}
-
 }

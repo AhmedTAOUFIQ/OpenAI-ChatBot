@@ -1,4 +1,4 @@
-package com.gpt.backend.entities;
+package com.gpt.backend.DTO;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
@@ -11,15 +11,7 @@ import java.io.Serializable;
 import java.util.List;
 
 @Data @AllArgsConstructor @NoArgsConstructor
-public class GPTResponse implements Serializable {
-    @Id
-    String id;
-    @Transient
-    String object;
-    @Transient
-    String created;
-    @Transient
-    String model;
+public class GPTResponseDTO implements Serializable {
 
     @JsonProperty("usage")
     Usage usage;

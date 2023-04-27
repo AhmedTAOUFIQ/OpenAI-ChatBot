@@ -10,6 +10,8 @@ public class QuestionAnswerPair {
     String question;
     String answer;
     String sessionId;
+
+
 }
 
 
